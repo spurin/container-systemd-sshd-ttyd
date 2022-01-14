@@ -1,0 +1,9 @@
+[Unit]
+Description=hostname_capture
+
+[Service]
+Type=oneshot
+ExecStart=bash -c "echo HOSTNAME=$(hostname) > /etc/ttyd_env"
+
+[Install]
+WantedBy=multi-user.target

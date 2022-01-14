@@ -1,0 +1,11 @@
+[Unit]
+Description=Startup service
+After=sshd.service ttyd.service
+
+[Service]
+Type=oneshot
+ExecStart=/bin/startup.sh
+RemainAfterExit=true
+
+[Install]
+WantedBy=multi-user.target
