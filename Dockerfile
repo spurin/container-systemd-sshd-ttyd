@@ -1,15 +1,47 @@
-FROM spurin/container-systemd:ubuntu_21.04
+# The default login program on CentOS doesn't work as expected under ttyd and systemd
+# 
+# The util-linux login program, unlike the shadow variation contains a small section
+# of code that closes open file descriptors prior to opening the login binary.  This 
+# unfortunately causes sporadic behaviour for ttyd/systemd
+#
+# The fix, detailed at https://lkml.org/lkml/2012/6/5/145 is for an issue that
+# that hadn't been an issue for 20 years.  The patch, removes this section, therefore
+# bringing back the original behaviour that is needed for this scenario
+#
+# Leverage the util-linux codebase, patch remove the fix and build a login binary in 
+# a donor container that we will copy into /utils in our container
+FROM centos:8 as loginbuild
+ENV LANG C.UTF-8
+ENV LC_ALL C.UTF-8
+
+# Copy util-linux login.c patch
+COPY login-c-patch /login-c-patch
+
+RUN yum -y group install "Development Tools" \
+    && yum -y install wget pam-devel \
+    && cd /tmp \
+    && wget https://github.com/karelzak/util-linux/archive/v2.36.tar.gz \
+    && tar zxvf v2.36.tar.gz \
+    && patch util-linux-2.36/login-utils/login.c < /login-c-patch \
+    && cd util-linux-2.36 \
+    && ./autogen.sh \
+    && ./configure --enable-login \
+    && make login
+
+# Main Start
+FROM spurin/container-systemd:centos_8
 
 # Remove /etc/securetty, this is a lab instance, we're allowing root via ttyd by default
 # Alter REMOVE_SECURETTY environment variable to disable
 ENV REMOVE_SECURETTY="True"
 RUN if [ "$REMOVE_SECURETTY" = "True" ]; then rm -rf /etc/securetty; fi
 
-# Update and install locales, openssh-server, sudo and dos2unix
-RUN apt-get update \
-    && apt-get install -y locales openssh-server sudo dos2unix \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+# Update and install openssh, sudo and dos2unix
+RUN yum install -y openssh-clients openssh-server sudo systemd systemd-udev dos2unix \
+    && yum clean all
+
+# Remove nologin (CentOS)
+RUN rm -f /run/nologin
 
 # Create required directories, Setup default login credentials
 RUN mkdir -p /config \
@@ -17,6 +49,9 @@ RUN mkdir -p /config \
     && echo guest > /config/guest_user \
     && echo guest > /config/guest_passwd \
     && echo '/bin/bash' > /config/guest_shell
+
+# Required for CentOS, not for Ubuntu
+RUN /usr/bin/ssh-keygen -A
 
 ## Setup ttyd, sources taken from https://github.com/tsl0922/ttyd/actions/runs/1667785057 as release has not been updated
 # Source zip file - https://github.com/tsl0922/ttyd/suites/4862873475/artifacts/138479841
@@ -43,8 +78,11 @@ RUN ln -s /lib/systemd/system/startup.service /etc/systemd/system/multi-user.tar
     && ln -s /lib/systemd/system/ttyd.service /etc/systemd/system/multi-user.target.wants/hostname_capture.service \
     && ln -s /lib/systemd/system/ttyd.service /etc/systemd/system/multi-user.target.wants/ttyd.service
 
+# Copy login built from util-linux source code in multi stage build
+COPY --from=loginbuild /tmp/util-linux-2.36/login /bin/login-patched
+
 # Enable services
-RUN systemctl enable startup hostname_capture ttyd ssh
+RUN systemctl enable startup hostname_capture ttyd sshd
 
 # Open Ports
 EXPOSE 22
