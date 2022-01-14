@@ -1,4 +1,4 @@
-FROM spurin/container-systemd:ubuntu_20.04
+FROM spurin/container-systemd:ubuntu_21.04
 
 # Remove /etc/securetty, this is a lab instance, we're allowing root via ttyd by default
 # Alter REMOVE_SECURETTY environment variable to disable
