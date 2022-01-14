@@ -10,7 +10,7 @@
 #
 # Leverage the util-linux codebase, patch remove the fix and build a login binary in 
 # a donor container that we will copy into /utils in our container
-FROM centos:8 as loginbuild
+FROM quay.io/centos/centos:stream9 as loginbuild
 ENV LANG C.UTF-8
 ENV LC_ALL C.UTF-8
 
@@ -29,15 +29,16 @@ RUN yum -y group install "Development Tools" \
     && make login
 
 # Main Start
-FROM spurin/container-systemd:centos_8
+FROM spurin/container-systemd:centos_stream9
 
 # Remove /etc/securetty, this is a lab instance, we're allowing root via ttyd by default
 # Alter REMOVE_SECURETTY environment variable to disable
 ENV REMOVE_SECURETTY="True"
 RUN if [ "$REMOVE_SECURETTY" = "True" ]; then rm -rf /etc/securetty; fi
 
-# Update and install openssh, sudo and dos2unix
+# Update and install openssh, sudo and dos2unix as well as common tools
 RUN yum install -y openssh-clients openssh-server sudo systemd systemd-udev dos2unix \
+    procps \
     && yum clean all
 
 # Remove nologin (CentOS)

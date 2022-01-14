@@ -1,0 +1,23 @@
+*** /util-linux-2.36/login-utils/login.c	Thu Jul 23 09:26:04 2020
+--- /util-linux-2.36/login-utils/login.c.patched	Tue Jul 28 08:05:31 2020
+*************** static void init_tty(struct login_contex
+*** 482,490 ****
+  	 * Let's close file descriptors before vhangup
+  	 * https://lkml.org/lkml/2012/6/5/145
+  	 */
+! 	close(STDIN_FILENO);
+! 	close(STDOUT_FILENO);
+! 	close(STDERR_FILENO);
+
+  	signal(SIGHUP, SIG_IGN);	/* so vhangup() won't kill us */
+  	vhangup();
+--- 482,490 ----
+  	 * Let's close file descriptors before vhangup
+  	 * https://lkml.org/lkml/2012/6/5/145
+  	 */
+! 	//close(STDIN_FILENO);
+! 	//close(STDOUT_FILENO);
+! 	//close(STDERR_FILENO);
+
+  	signal(SIGHUP, SIG_IGN);	/* so vhangup() won't kill us */
+  	vhangup();
