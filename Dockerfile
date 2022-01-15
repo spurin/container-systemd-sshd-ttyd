@@ -36,9 +36,9 @@ FROM spurin/container-systemd:centos_stream9
 ENV REMOVE_SECURETTY="True"
 RUN if [ "$REMOVE_SECURETTY" = "True" ]; then rm -rf /etc/securetty; fi
 
-# Update and install openssh, sudo and dos2unix as well as common tools
+# Update and install openssh, sudo and dos2unix as well as hostname (needed for ttyd)
 RUN yum install -y openssh-clients openssh-server sudo systemd systemd-udev dos2unix \
-    procps \
+    hostname \
     && yum clean all
 
 # Remove nologin (CentOS)
