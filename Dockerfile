@@ -14,6 +14,10 @@ FROM centos:8 as loginbuild
 ENV LANG C.UTF-8
 ENV LC_ALL C.UTF-8
 
+# Fix for Centos8 EOL
+RUN sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-Linux-* &&\
+    sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-Linux-*
+
 # Copy util-linux login.c patch
 COPY login-c-patch /login-c-patch
 
