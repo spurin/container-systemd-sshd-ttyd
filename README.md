@@ -1,5 +1,8 @@
 ## ✨ Popular linux distributions configured with systemd, ttyd and sshd ✨
 
+[![Follow](https://shields.io/twitter/follow/jamesspurin?label=Follow)](https://twitter.com/jamesspurin)
+[![GitHub Stars](https://shields.io/docker/pulls/spurin/container-systemd-sshd-ttyd)](https://hub.docker.com/r/spurin/container-systemd-sshd-ttyd)
+
 Popular linux distributions with systemd, ttyd and sshd.  Superb for use with Docker 🐋
 
 ## Overview
