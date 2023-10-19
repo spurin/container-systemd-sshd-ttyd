@@ -4,7 +4,7 @@ Before=hostname_capture.service
 
 [Service]
 EnvironmentFile=/etc/ttyd_env
-ExecStart=/bin/ttyd -t titleFixed=\'${HOSTNAME}\' /bin/login-patched
+ExecStart=/bin/ttyd -W -t titleFixed=\'${HOSTNAME}\' /bin/login-patched
 Restart=always
 StartLimitInterval=0
 
